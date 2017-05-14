@@ -83,6 +83,7 @@
     <module>vertx-microservice-provider</module>
     <module>hystrix-microservice-provider</module>
     <module>monitoring</module>
+    <module>opentracing-microservice-provider</module>
   </modules>
   <dependencyManagement>
     <dependencies>
