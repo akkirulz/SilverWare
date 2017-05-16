@@ -132,6 +132,11 @@
          </dependency>
          <dependency>
             <groupId>io.silverware</groupId>
+            <artifactId>metrics-microservice-provider</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>io.silverware</groupId>
             <artifactId>camel-cdi-integration</artifactId>
             <version>${project.version}</version>
          </dependency>
