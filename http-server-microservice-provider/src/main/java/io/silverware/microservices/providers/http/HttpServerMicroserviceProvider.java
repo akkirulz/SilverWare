@@ -70,6 +70,8 @@ public class HttpServerMicroserviceProvider implements MicroserviceProvider, Htt
       context.getProperties().putIfAbsent(HTTP_SERVER_REST_CONTEXT_PATH, "/silverware");
       context.getProperties().putIfAbsent(HTTP_SERVER_REST_SERVLET_MAPPING_PREFIX, "rest");
 
+      context.getProperties().putIfAbsent(REST_PROVIDER_LIST, new ArrayList<Object>());
+
       if (Boolean.valueOf(String.valueOf(context.getProperties().get(HTTP_SERVER_SSL_ENABLED)))) {
          log.info("Property 'silverware.http.server.ssl.enabled' set to 'true', enabling SSL.");
          this.sslEnabled = true;
@@ -158,7 +160,9 @@ public class HttpServerMicroserviceProvider implements MicroserviceProvider, Htt
       final ResteasyDeployment resteasyDeployment = new ResteasyDeployment();
       Utils.waitForCDIProvider(context);
 
+      resteasyDeployment.setProviders((List<Object>) this.context.getProperties().get(REST_PROVIDER_LIST));
       resteasyDeployment.setResourceFactories(resourceFactories());
+
       final DeploymentInfo deploymentInfo = this.server.undertowDeployment(resteasyDeployment,
             String.valueOf(this.context.getProperties().get(HTTP_SERVER_REST_SERVLET_MAPPING_PREFIX)))
                                                        .setContextPath(String.valueOf(this.context.getProperties().get(HTTP_SERVER_REST_CONTEXT_PATH)))

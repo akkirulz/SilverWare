@@ -7,8 +7,4 @@ package io.silverware.microservices.silver;
  */
 public interface TracingSilverService extends SilverService {
 
-   /**
-    * Context property which should hold OpenTracing Tracer interface implementing class.
-    */
-   String OPENTRACER_INSTANCE = "silverware.tracing.opentracer.instance";
 }

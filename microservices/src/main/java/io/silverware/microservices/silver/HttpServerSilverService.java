@@ -103,6 +103,11 @@ public interface HttpServerSilverService extends SilverService {
    String DEFAULT_SSL_STORE_PASSWORD = "silverware";
 
    /**
+    * REST providers list (like RequestFilter, ResponseFilter, DynamicFeature)
+    */
+   String REST_PROVIDER_LIST = "silverware.http.rest.provider.list";
+
+   /**
     * Deploys a servlet on the HTTP server.
     *
     * @param contextPath

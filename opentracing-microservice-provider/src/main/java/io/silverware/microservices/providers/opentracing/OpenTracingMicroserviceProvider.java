@@ -21,19 +21,25 @@ package io.silverware.microservices.providers.opentracing;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
+import io.opentracing.contrib.jaxrs2.server.ServerSpanDecorator;
+import io.opentracing.contrib.jaxrs2.server.ServerTracingDynamicFeature;
+import io.opentracing.contrib.spanmanager.DefaultSpanManager;
+import io.opentracing.contrib.spanmanager.SpanManager;
+import io.opentracing.util.GlobalTracer;
 import io.silverware.microservices.Context;
 import io.silverware.microservices.providers.MicroserviceProvider;
+import io.silverware.microservices.silver.HttpServerSilverService;
 import io.silverware.microservices.silver.TracingSilverService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.ws.rs.container.DynamicFeature;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 /**
  * OpenTracing microservice provider for tracing cross-service calls and manual traces.
- *
- * Cross-service (Microservice class) calls are automaticaly traced if they are made using one of these MicroserviceProviders:
- *  - CDI Microservice Provider
- *  - REST Microservice Provider
- *  - Cluster Microservice Provider
  *
  * @author Jaroslav Dufek (email@n3xtgen.net)
  */
@@ -41,19 +47,12 @@ public class OpenTracingMicroserviceProvider implements MicroserviceProvider, Tr
 
    private static final Logger log = LogManager.getLogger(OpenTracingMicroserviceProvider.class);
 
+   private Context context;
+
    /**
     * Global app OpenTracingMicroserviceProvider instance created as microserervice provider by SilverWare Executor.
     */
    public static OpenTracingMicroserviceProvider PROVIDER_INSTANCE;
-
-   /**
-    * Span bound to current Thread.
-    */
-   public static final ThreadLocal<Span> THREAD_SPAN = new ThreadLocal<Span>();
-
-   private Context context;
-
-   private Tracer tracer;
 
    @Override
    public Context getContext() {
@@ -64,12 +63,28 @@ public class OpenTracingMicroserviceProvider implements MicroserviceProvider, Tr
    public void initialize(final Context context) {
       this.context = context;
 
-//      context.getProperties().putIfAbsent(HTTP_SERVER_PORT, 8080);
-//      context.getProperties().putIfAbsent(HTTP_SERVER_ADDRESS, "0.0.0.0");
-//      context.getProperties().putIfAbsent(HTTP_SERVER_REST_CONTEXT_PATH, "/silverware");
-//      context.getProperties().putIfAbsent(HTTP_SERVER_REST_SERVLET_MAPPING_PREFIX, "rest");
+      try {
+         Class builderClass = ServerTracingDynamicFeature.Builder.class;
+         Constructor builderConstructor = builderClass.getDeclaredConstructor(Tracer.class);
+         builderConstructor.setAccessible(true);
+         ServerTracingDynamicFeature.Builder builder =
+               (ServerTracingDynamicFeature.Builder) builderConstructor.newInstance(GlobalTracer.get());
 
-      //context.getProperties().put(HTTP_SERVER, this.server);
+         DynamicFeature dynamicFeafure = builder.withDecorators(Arrays.asList(
+               ServerSpanDecorator.HTTP_WILDCARD_PATH_OPERATION_NAME,
+               ServerSpanDecorator.STANDARD_TAGS))
+               .build();
+
+         context.getProperties().putIfAbsent(HttpServerSilverService.REST_PROVIDER_LIST, new ArrayList<Object>());
+         ((ArrayList<Object>) context.getProperties().get(HttpServerSilverService.REST_PROVIDER_LIST)).add(dynamicFeafure);
+
+         log.info("Instance of ServerTracingDynamicFeature added for REST tracing.");
+      } catch (Exception ex) {
+         log.error("Could not create instance of ServerTracingDynamicFeature for REST tracing!");
+      }
+
+
+      PROVIDER_INSTANCE = this;
    }
 
 
@@ -80,40 +95,8 @@ public class OpenTracingMicroserviceProvider implements MicroserviceProvider, Tr
 
       log.info("Tracing microservice provider starting!");
 
-      Object tracerImplementation = context.getProperties().get(OPENTRACER_INSTANCE);
-
-      if (tracerImplementation == null) {
-         log.warn("Property " + OPENTRACER_INSTANCE + " was not set, no tracing will be send.");
-         return;
-      } else if (!(tracerImplementation instanceof Tracer)) {
-         log.error("Tracer implementation is not Tracing compatible, no tracing will be send.");
-         return;
+      if (!GlobalTracer.isRegistered()) {
+         log.warn("Global Tracer instance was not yet registered!");
       }
-
-      tracer = (Tracer) tracerImplementation;
-
-      PROVIDER_INSTANCE = this;
-   }
-
-   /**
-    * Returns tracing SpanContext of the current Thread, or null if none was set created yet.
-    *
-    * @return OpenTracing SpanContext or NULL if none is set.
-    */
-   public Span getThreadSpan() {
-      return THREAD_SPAN.get();
-   }
-
-   /**
-    * Creates Span for call of function of local Microservice which will get be seen throughout the Thread scope.
-    *
-    * @return created Span
-    */
-   public Span createSpanForLocalMicroserviceCall() {
-
-      Span newMicroserviceCallSpan = tracer.buildSpan("Jmeno podle nazvu volane funkce").start();
-
-      THREAD_SPAN.set(newMicroserviceCallSpan);
-      return newMicroserviceCallSpan;
    }
 }
