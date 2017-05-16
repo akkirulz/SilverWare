@@ -77,6 +77,11 @@ public class Context {
    public static final String WELD_NAME = "silverware.weld.name";
 
    /**
+    * Property key where a current SilverWare instance id is stored.
+    */
+   public static final String INSTANCE_ID = "silverware.instance.id";
+
+   /**
     * Global properties.
     */
    private final Map<String, Object> properties = new HashMap<>();

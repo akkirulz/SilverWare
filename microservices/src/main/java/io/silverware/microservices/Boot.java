@@ -37,8 +37,15 @@ import org.apache.logging.log4j.core.LoggerContext;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -130,6 +137,19 @@ public final class Boot {
 
       System.getProperties().forEach((key, value) -> contextProperties.put((String) key, value));
 
+
+      InputStream defaultPropertiesFile = Boot.class.getClassLoader().getResourceAsStream("silverware.properties");
+      if (defaultPropertiesFile != null) {
+         Properties defaultProperties = new Properties();
+         try {
+            defaultProperties.load(defaultPropertiesFile);
+            defaultProperties.forEach((key, val) -> contextProperties.putIfAbsent(key.toString(), val));
+         } catch (Exception ex) {
+            log.error("Error loading default property file");
+         }
+      }
+
+
       options.addOption(Option.builder(PROPERTY_LETTER).argName("property=value").numberOfArgs(2).valueSeparator().desc("system properties").build());
       options.addOption(Option.builder(PROPERTY_FILE_LETTER).longOpt("properties").desc("Custom property file").hasArg().argName("PROPERTY_FILE").build());
 
@@ -152,7 +172,22 @@ public final class Boot {
          new HelpFormatter().printHelp("SilverWare usage:", options);
          System.exit(1);
       }
+
       contextProperties.putIfAbsent(SHUTDOWN_HOOK, "true");
+
+      String defaultInstanceId;
+      try {
+         String instanceString = Inet4Address.getLocalHost().getHostAddress() + new Date().getTime();
+         MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+         messageDigest.update(instanceString.getBytes());
+         String instanceWholeId = new BigInteger(1, messageDigest.digest()).toString(16);
+         defaultInstanceId = instanceWholeId.substring(instanceWholeId.length() - 6);
+      } catch (Exception ex) {
+         defaultInstanceId = "errorInstanceId" + new Random().nextInt();
+      }
+
+      contextProperties.putIfAbsent(Context.INSTANCE_ID, defaultInstanceId);
+
       return context;
    }
 }

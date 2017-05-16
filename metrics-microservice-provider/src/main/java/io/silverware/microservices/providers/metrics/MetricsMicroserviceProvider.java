@@ -119,11 +119,12 @@ public class MetricsMicroserviceProvider implements MicroserviceProvider, Metric
             }
 
             String prefix = (String) context.getProperties().putIfAbsent(GRAPHITE_PREFIX, "silverware");
+            String instanceId = (String) context.getProperties().get(Context.INSTANCE_ID);
 
             final Graphite graphite = new Graphite(new InetSocketAddress(graphiteHostname, graphitePort));
 
             graphiteReporter = GraphiteReporter.forRegistry(registry)
-                  .prefixedWith(prefix)
+                  .prefixedWith(prefix + (instanceId.equals("") ? "" : "." + instanceId))
                   .convertRatesTo(TimeUnit.SECONDS)
                   .convertDurationsTo(TimeUnit.MILLISECONDS)
                   .filter(MetricFilter.ALL)

@@ -56,7 +56,7 @@ public class Metrics {
     * @param name gauge reporting name
     * @param intSupplier lambda function returning integer of current gauge value
     */
-   public Gauge<Integer> gauge(String name, IntSupplier intSupplier) {
+   public static Gauge<Integer> gauge(String name, IntSupplier intSupplier) {
       return MetricsMicroserviceProvider.registry().gauge(name, () -> (Gauge<Integer>) () -> intSupplier.getAsInt());
    }
 
@@ -119,7 +119,7 @@ public class Metrics {
     * @param name health check reporting name
     * @param healthResultSupplier function for health checking
     */
-   public void registerHealthCheck(String name, Supplier<HealthCheck.Result> healthResultSupplier) {
+   public static void registerHealthCheck(String name, Supplier<HealthCheck.Result> healthResultSupplier) {
       MetricsMicroserviceProvider.healthRegistry().register(name, new HealthCheck() {
          @Override
          protected Result check() throws Exception {
