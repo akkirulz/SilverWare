@@ -13,6 +13,11 @@ public interface MetricsSilverService extends SilverService {
    String CONSOLE_REPORT_INTERVAL = "silverware.metrics.console.interval";
 
    /**
+    * Context property - if set to "true", metrics will be available in JMX.
+    */
+   String JMX_REPORT_ENABLED = "silverware.metrics.jmx.enabled";
+
+   /**
     * Context property - if set with number seconds, starts the Graphite reporting with given seconds interval.
     */
    String GRAPHITE_REPORT_INTERVAL = "silverware.metrics.graphite.interval";

@@ -40,6 +40,17 @@ public class Metrics {
    }
 
    /**
+    * Return concatenated name of metric from given class and custom metric name.
+    *
+    * @param clazz given class
+    * @param name metric name
+    * @return concatenated name
+    */
+   public static String name(Class clazz, String name) {
+      return MetricRegistry.name(clazz, name);
+   }
+
+   /**
     * Returns Meter registered under this name or creates new.
     *
     * @param name meter reporting name

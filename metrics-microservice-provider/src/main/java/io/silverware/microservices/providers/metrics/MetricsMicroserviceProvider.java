@@ -20,6 +20,7 @@
 package io.silverware.microservices.providers.metrics;
 
 import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
@@ -71,6 +72,11 @@ public class MetricsMicroserviceProvider implements MicroserviceProvider, Metric
    private int consoleInterval;
 
    /**
+    * Metric reporter to JMX.
+    */
+   private JmxReporter jmxReporter;
+
+   /**
     * Metrics reporter to Graphite.
     */
    private GraphiteReporter graphiteReporter;
@@ -103,6 +109,14 @@ public class MetricsMicroserviceProvider implements MicroserviceProvider, Metric
                   .convertDurationsTo(TimeUnit.MILLISECONDS)
                   .build();
          }
+      }
+
+      String jmxEnabledProperty = (String) context.getProperties().get(JMX_REPORT_ENABLED);
+      if (jmxEnabledProperty != null && jmxEnabledProperty.equals("true")) {
+         jmxReporter = JmxReporter.forRegistry(registry)
+               .convertRatesTo(TimeUnit.SECONDS)
+               .convertDurationsTo(TimeUnit.MILLISECONDS)
+               .build();
       }
 
       String graphiteIntervalProperty = (String) context.getProperties().get(GRAPHITE_REPORT_INTERVAL);
@@ -142,6 +156,11 @@ public class MetricsMicroserviceProvider implements MicroserviceProvider, Metric
       if (consoleReporter != null) {
          consoleReporter.start(consoleInterval, TimeUnit.SECONDS);
          log.info("Metrics reporting to console started with interval of " + consoleInterval + " seconds.");
+      }
+
+      if (jmxReporter != null) {
+         jmxReporter.start();
+         log.info("Metrics reporting to JMX started.");
       }
 
       if (graphiteReporter != null) {

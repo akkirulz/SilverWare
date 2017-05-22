@@ -29,11 +29,26 @@
          <artifactId>metrics-graphite</artifactId>
          <version>3.2.2</version>
       </dependency>
+      <dependency>
+         <groupId>io.dropwizard.metrics</groupId>
+         <artifactId>metrics-servlets</artifactId>
+         <version>3.2.2</version>
+      </dependency>
 
       <dependency>
          <groupId>org.assertj</groupId>
          <artifactId>assertj-core</artifactId>
          <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.jboss.spec.javax.servlet</groupId>
+         <artifactId>jboss-servlet-api_3.1_spec</artifactId>
+         <version>RELEASE</version>
+      </dependency>
+      <dependency>
+         <groupId>org.jboss.spec.javax.servlet</groupId>
+         <artifactId>jboss-servlet-api_3.1_spec</artifactId>
+         <version>RELEASE</version>
       </dependency>
    </dependencies>
    <build>

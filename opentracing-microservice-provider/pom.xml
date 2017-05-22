@@ -46,6 +46,26 @@
          <artifactId>assertj-core</artifactId>
          <scope>test</scope>
       </dependency>
+      <dependency>
+         <groupId>org.jboss.spec.javax.servlet</groupId>
+         <artifactId>jboss-servlet-api_3.1_spec</artifactId>
+         <version>RELEASE</version>
+      </dependency>
+      <dependency>
+         <groupId>io.silverware</groupId>
+         <artifactId>cdi-microservice-provider</artifactId>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>io.silverware</groupId>
+         <artifactId>http-server-microservice-provider</artifactId>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>io.silverware</groupId>
+         <artifactId>rest-client-microservice-provider</artifactId>
+         <scope>test</scope>
+      </dependency>
    </dependencies>
    <build>
       <plugins>

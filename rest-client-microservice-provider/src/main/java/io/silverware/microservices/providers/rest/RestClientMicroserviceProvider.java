@@ -32,8 +32,10 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -52,7 +54,8 @@ public class RestClientMicroserviceProvider implements MicroserviceProvider, Res
    @Override
    public void initialize(final Context context) {
       this.context = context;
-      this.client = new ResteasyClientBuilder().build();
+
+      context.getProperties().putIfAbsent(REST_CLIENT_FILTER_LIST, new ArrayList<Object>());
    }
 
    @Override
@@ -63,6 +66,12 @@ public class RestClientMicroserviceProvider implements MicroserviceProvider, Res
    @Override
    public void run() {
       log.info("Hello from REST client microservice provider!");
+
+      this.client = new ResteasyClientBuilder().build();
+
+      for (Object filter : (List<Object>) context.getProperties().get(REST_CLIENT_FILTER_LIST)) {
+         this.client.register(filter, 0);
+      }
 
       try {
          while (!Thread.currentThread().isInterrupted()) {

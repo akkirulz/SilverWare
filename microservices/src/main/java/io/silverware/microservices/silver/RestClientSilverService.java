@@ -25,4 +25,9 @@ package io.silverware.microservices.silver;
  * @author <a href="mailto:marvenec@gmail.com">Martin Večeřa</a>
  */
 public interface RestClientSilverService extends ProvidingSilverService {
+
+   /**
+    * REST client filter list
+    */
+   String REST_CLIENT_FILTER_LIST = "silverware.http.rest.client.filter.list";
 }

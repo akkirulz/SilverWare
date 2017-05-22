@@ -21,6 +21,10 @@ package io.silverware.microservices.providers.opentracing;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
+import io.opentracing.contrib.jaxrs2.client.ClientSpanDecorator;
+import io.opentracing.contrib.jaxrs2.client.SpanClientRequestFilter;
+import io.opentracing.contrib.jaxrs2.client.SpanClientResponseFilter;
+import io.opentracing.contrib.jaxrs2.client.TracingProperties;
 import io.opentracing.contrib.jaxrs2.server.ServerSpanDecorator;
 import io.opentracing.contrib.jaxrs2.server.ServerTracingDynamicFeature;
 import io.opentracing.contrib.spanmanager.DefaultSpanManager;
@@ -28,15 +32,21 @@ import io.opentracing.contrib.spanmanager.SpanManager;
 import io.opentracing.util.GlobalTracer;
 import io.silverware.microservices.Context;
 import io.silverware.microservices.providers.MicroserviceProvider;
+import io.silverware.microservices.providers.opentracing.rest.SwSpanClientRequestFilter;
+import io.silverware.microservices.providers.opentracing.utils.Tracing;
 import io.silverware.microservices.silver.HttpServerSilverService;
+import io.silverware.microservices.silver.RestClientSilverService;
 import io.silverware.microservices.silver.TracingSilverService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.container.DynamicFeature;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * OpenTracing microservice provider for tracing cross-service calls and manual traces.
@@ -64,6 +74,7 @@ public class OpenTracingMicroserviceProvider implements MicroserviceProvider, Tr
       this.context = context;
 
       try {
+         // Annotated REST server tracing part
          Class builderClass = ServerTracingDynamicFeature.Builder.class;
          Constructor builderConstructor = builderClass.getDeclaredConstructor(Tracer.class);
          builderConstructor.setAccessible(true);
@@ -76,9 +87,23 @@ public class OpenTracingMicroserviceProvider implements MicroserviceProvider, Tr
                .build();
 
          context.getProperties().putIfAbsent(HttpServerSilverService.REST_PROVIDER_LIST, new ArrayList<Object>());
-         ((ArrayList<Object>) context.getProperties().get(HttpServerSilverService.REST_PROVIDER_LIST)).add(dynamicFeafure);
-
+         ((List<Object>) context.getProperties().get(HttpServerSilverService.REST_PROVIDER_LIST)).add(dynamicFeafure);
          log.info("Instance of ServerTracingDynamicFeature added for REST tracing.");
+
+
+         // Automatic REST client tracing
+         List<ClientSpanDecorator> spanDecorators = Arrays.asList(
+               ClientSpanDecorator.STANDARD_TAGS,
+               ClientSpanDecorator.HTTP_PATH_OPERATION_NAME);
+
+         SpanClientRequestFilter requestFilter = new SwSpanClientRequestFilter(GlobalTracer.get(), spanDecorators);
+         SpanClientResponseFilter responseFilter = new SpanClientResponseFilter(spanDecorators);
+
+         context.getProperties().putIfAbsent(RestClientSilverService.REST_CLIENT_FILTER_LIST, new ArrayList<Object>());
+         ((List<Object>) context.getProperties().get(RestClientSilverService.REST_CLIENT_FILTER_LIST)).add(requestFilter);
+         ((List<Object>) context.getProperties().get(RestClientSilverService.REST_CLIENT_FILTER_LIST)).add(responseFilter);
+         log.info("Instances of ClientTracingFilters added for REST tracing.");
+
       } catch (Exception ex) {
          log.error("Could not create instance of ServerTracingDynamicFeature for REST tracing!");
       }
