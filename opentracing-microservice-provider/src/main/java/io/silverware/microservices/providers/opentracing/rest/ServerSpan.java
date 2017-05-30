@@ -4,6 +4,7 @@ import io.opentracing.Span;
 import io.opentracing.contrib.jaxrs2.internal.CastUtils;
 import io.opentracing.contrib.jaxrs2.internal.SpanWrapper;
 import io.opentracing.contrib.jaxrs2.server.SpanServerRequestFilter;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 

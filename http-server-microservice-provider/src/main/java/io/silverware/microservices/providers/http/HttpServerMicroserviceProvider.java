@@ -37,6 +37,7 @@ import org.jboss.resteasy.spi.ResteasyDeployment;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.net.ssl.SSLContext;
 import javax.servlet.Servlet;
 import javax.ws.rs.Path;
@@ -69,8 +70,6 @@ public class HttpServerMicroserviceProvider implements MicroserviceProvider, Htt
       context.getProperties().putIfAbsent(HTTP_SERVER_ADDRESS, "0.0.0.0");
       context.getProperties().putIfAbsent(HTTP_SERVER_REST_CONTEXT_PATH, "/silverware");
       context.getProperties().putIfAbsent(HTTP_SERVER_REST_SERVLET_MAPPING_PREFIX, "rest");
-
-      context.getProperties().putIfAbsent(REST_PROVIDER_LIST, new ArrayList<Object>());
 
       if (Boolean.valueOf(String.valueOf(context.getProperties().get(HTTP_SERVER_SSL_ENABLED)))) {
          log.info("Property 'silverware.http.server.ssl.enabled' set to 'true', enabling SSL.");
@@ -160,7 +159,11 @@ public class HttpServerMicroserviceProvider implements MicroserviceProvider, Htt
       final ResteasyDeployment resteasyDeployment = new ResteasyDeployment();
       Utils.waitForCDIProvider(context);
 
-      resteasyDeployment.setProviders((List<Object>) this.context.getProperties().get(REST_PROVIDER_LIST));
+      List<Object> providerList = (List<Object>) this.context.getProperties().get(REST_PROVIDER_LIST);
+      if (providerList != null) {
+         resteasyDeployment.setProviders(providerList);
+      }
+
       resteasyDeployment.setResourceFactories(resourceFactories());
 
       final DeploymentInfo deploymentInfo = this.server.undertowDeployment(resteasyDeployment,
@@ -168,6 +171,21 @@ public class HttpServerMicroserviceProvider implements MicroserviceProvider, Htt
                                                        .setContextPath(String.valueOf(this.context.getProperties().get(HTTP_SERVER_REST_CONTEXT_PATH)))
                                                        .setClassLoader(this.getClass().getClassLoader())
                                                        .setDeploymentName("Silverware rest deployment");
+
+      Map<String, Class> servletList = (Map<String, Class>) context.getProperties().get(HttpServerSilverService.SERVLET_LIST);
+      if (servletList != null) {
+         for (Map.Entry<String, Class> servlet : servletList.entrySet()) {
+            deploymentInfo.addServlet(Servlets.servlet(servlet.getValue()).addMapping(servlet.getKey()));
+         }
+      }
+
+      List<Class> listenerList = (List<Class>) context.getProperties().get(HttpServerSilverService.LISTENER_LIST);
+      if (servletList != null) {
+         for (Class listener : listenerList) {
+            deploymentInfo.addListener(Servlets.listener(listener));
+         }
+      }
+
       if (this.sslEnabled) {
          deploymentInfo
                .addSecurityConstraint(new SecurityConstraint().addWebResourceCollection(new WebResourceCollection()

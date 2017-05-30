@@ -7,7 +7,6 @@ import io.silverware.microservices.providers.opentracing.rest.ServerSpan;
 import io.silverware.microservices.providers.opentracing.utils.Tracing;
 import io.silverware.microservices.providers.rest.annotation.ServiceConfiguration;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;

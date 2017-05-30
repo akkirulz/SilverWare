@@ -19,30 +19,23 @@
  */
 package io.silverware.microservices.providers.opentracing;
 
-import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.jaxrs2.client.ClientSpanDecorator;
 import io.opentracing.contrib.jaxrs2.client.SpanClientRequestFilter;
 import io.opentracing.contrib.jaxrs2.client.SpanClientResponseFilter;
-import io.opentracing.contrib.jaxrs2.client.TracingProperties;
 import io.opentracing.contrib.jaxrs2.server.ServerSpanDecorator;
 import io.opentracing.contrib.jaxrs2.server.ServerTracingDynamicFeature;
-import io.opentracing.contrib.spanmanager.DefaultSpanManager;
-import io.opentracing.contrib.spanmanager.SpanManager;
 import io.opentracing.util.GlobalTracer;
 import io.silverware.microservices.Context;
 import io.silverware.microservices.providers.MicroserviceProvider;
 import io.silverware.microservices.providers.opentracing.rest.SwSpanClientRequestFilter;
-import io.silverware.microservices.providers.opentracing.utils.Tracing;
 import io.silverware.microservices.silver.HttpServerSilverService;
 import io.silverware.microservices.silver.RestClientSilverService;
 import io.silverware.microservices.silver.TracingSilverService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.container.DynamicFeature;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;

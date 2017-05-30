@@ -26,13 +26,20 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.codahale.metrics.health.HealthCheckRegistry;
+import com.codahale.metrics.servlets.HealthCheckServlet;
 import io.silverware.microservices.Context;
 import io.silverware.microservices.providers.MicroserviceProvider;
+import io.silverware.microservices.silver.HttpServerSilverService;
 import io.silverware.microservices.silver.MetricsSilverService;
+import io.silverware.microservices.util.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -97,6 +104,12 @@ public class MetricsMicroserviceProvider implements MicroserviceProvider, Metric
 
       registry = new MetricRegistry();
       healthRegistry = new HealthCheckRegistry();
+
+      context.getProperties().putIfAbsent(HttpServerSilverService.LISTENER_LIST, new ArrayList<Class>());
+      ((List<Class>) context.getProperties().get(HttpServerSilverService.LISTENER_LIST)).add(HealthCheckServletContextListener.class);
+
+      context.getProperties().putIfAbsent(HttpServerSilverService.SERVLET_LIST, new HashMap<>());
+      ((Map<String, Class>)context.getProperties().get(HttpServerSilverService.SERVLET_LIST)).put("health", HealthCheckServlet.class);
 
       String consoleIntervalProperty = (String) context.getProperties().get(CONSOLE_REPORT_INTERVAL);
       if (consoleIntervalProperty != null) {
@@ -168,6 +181,26 @@ public class MetricsMicroserviceProvider implements MicroserviceProvider, Metric
          log.info("Metrics reporting to Graphite`s Carbon at "
                + context.getProperties().get(GRAPHITE_HOSTNAME) + ":" + context.getProperties().get(GRAPHITE_PORT)
                + " started with interval of " + graphiteInterval + " seconds.");
+      }
+
+      try {
+         while (!Thread.currentThread().isInterrupted()) {
+            Thread.sleep(1000);
+         }
+      } catch (final InterruptedException ie) {
+         Utils.shutdownLog(log, ie);
+      } finally {
+         log.info("Metrics microservice provider shutting down.");
+
+         if (consoleReporter != null) {
+            consoleReporter.stop();
+         }
+         if (jmxReporter != null) {
+            jmxReporter.stop();
+         }
+         if (graphiteReporter != null) {
+            graphiteReporter.stop();
+         }
       }
    }
 

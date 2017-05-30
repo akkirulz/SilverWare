@@ -5,7 +5,6 @@ import io.opentracing.SpanContext;
 import io.opentracing.contrib.spanmanager.DefaultSpanManager;
 import io.opentracing.contrib.spanmanager.SpanManager;
 import io.opentracing.util.GlobalTracer;
-import io.silverware.microservices.providers.opentracing.OpenTracingMicroserviceProvider;
 
 /**
  * Static class for manual manipulation of tracing spans bound to current Thread.

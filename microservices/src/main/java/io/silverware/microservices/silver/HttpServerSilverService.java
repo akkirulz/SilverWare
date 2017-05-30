@@ -103,9 +103,19 @@ public interface HttpServerSilverService extends SilverService {
    String DEFAULT_SSL_STORE_PASSWORD = "silverware";
 
    /**
-    * REST providers list (like RequestFilter, ResponseFilter, DynamicFeature)
+    * REST providers instances list (like RequestFilter, ResponseFilter, DynamicFeature), should be of type List&lt;Object&gt;.
     */
    String REST_PROVIDER_LIST = "silverware.http.rest.provider.list";
+
+   /**
+    * List of additional servlets for deploying, with their mappings, should be of type Map&lt;String, Class&gt;.
+    */
+   String SERVLET_LIST = "silverware.http.servlet.list";
+
+   /**
+    * List of additional context servlet listeners for deploying, should be of type List&lt;Class&gt;.
+    */
+   String LISTENER_LIST = "silverware.http.listener.list";
 
    /**
     * Deploys a servlet on the HTTP server.
